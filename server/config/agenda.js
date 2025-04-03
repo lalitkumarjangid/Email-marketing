@@ -1,46 +1,57 @@
 import Agenda from 'agenda';
-import nodemailer from 'nodemailer';
+import sendEmail from '../services/emailService.js';
+import Email from '../models/emails.js'; // Import the Email model
 import dotenv from 'dotenv';
 
-// Load environment variables before using them
+// Load environment variables
 dotenv.config();
 
 // Create an instance of agenda
-// Use the MONGO_URI from environment variables
 const agenda = new Agenda({
   db: {
     address: process.env.MONGO_URI,
     collection: 'agendaJobs'
   },
-  processEvery: '1 minute'
+  processEvery: '30 seconds' // Process more frequently for better responsiveness
 });
 
 // Define the job to send emails
 agenda.define('send scheduled email', async (job) => {
-  const { email, subject, body } = job.attrs.data;
+  const { email, subject, body, emailId } = job.attrs.data;
 
-  // Configure nodemailer
-  const transporter = nodemailer.createTransport({
-    host: process.env.EMAIL_HOST,
-    port: process.env.EMAIL_PORT,
-    secure: process.env.EMAIL_SECURE === 'true',
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS
-    }
-  });
-
-  // Send email
   try {
-    await transporter.sendMail({
-      from: process.env.EMAIL_FROM || process.env.EMAIL_USER,
-      to: email,
-      subject: subject,
-      html: body
-    });
-    console.log(`Email sent to ${email}`);
+    // Send the email
+    await sendEmail(email, subject, body);
+    
+    // Update the email status in the database
+    if (emailId) {
+      await Email.findByIdAndUpdate(
+        emailId,
+        { 
+          status: 'sent', 
+          sentAt: new Date() 
+        },
+        { new: true }
+      );
+      console.log(`Email ${emailId} status updated to "sent"`);
+    }
+    
+    console.log(`Scheduled email successfully sent to ${email}`);
   } catch (error) {
-    console.error('Error sending email:', error);
+    console.error('Error in scheduled email job:', error);
+    
+    // Update the status to failed if there's an error
+    if (emailId) {
+      await Email.findByIdAndUpdate(
+        emailId,
+        { 
+          status: 'failed', 
+          error: error.message 
+        },
+        { new: true }
+      );
+      console.log(`Email ${emailId} status updated to "failed"`);
+    }
   }
 });
 
