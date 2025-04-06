@@ -13,7 +13,7 @@ const Port = 5000
 connectDB();
 
 app.use(cors({
-    origin: 'http://localhost:5173', // or specific origins
+    origin: 'https://marketingxyz.vercel.app',
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization']
   }))

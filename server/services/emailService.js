@@ -21,7 +21,7 @@ const sendEmail = async (email, subject, body) => {
 
   try {
     await transporter.sendMail({
-      from: process.env.EMAIL_FROM || `"FutureLink" <${process.env.EMAIL_USER}>`,
+      from: process.env.EMAIL_FROM || `"Futurebink" <${process.env.EMAIL_USER}>`,
       to: email,
       subject,
       html: body, // Using HTML instead of text for better formatting
