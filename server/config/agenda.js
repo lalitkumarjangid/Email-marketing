@@ -17,11 +17,11 @@ const agenda = new Agenda({
 
 // Define the job to send emails
 agenda.define('send scheduled email', async (job) => {
-  const { email, subject, body, emailId } = job.attrs.data;
+  const { email: recipientEmail, subject, body, emailId } = job.attrs.data;
 
   try {
     // Send the email
-    await sendEmail(email, subject, body);
+    await sendEmail(recipientEmail, subject, body);
     
     // Update the email status in the database
     if (emailId) {

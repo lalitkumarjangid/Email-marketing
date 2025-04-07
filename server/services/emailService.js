@@ -16,23 +16,29 @@ const createTransporter = () => {
   });
 };
 
-const sendEmail = async (email, subject, body) => {
+const sendEmail = async (recipients, subject, body) => {
   const transporter = createTransporter();
+  
+  // Handle different formats of recipients (string, array, or comma-separated)
+  let toAddresses = recipients;
+  if (Array.isArray(recipients)) {
+    toAddresses = recipients.join(',');
+  }
 
   try {
     await transporter.sendMail({
       from: process.env.EMAIL_FROM || `"Futurebink" <${process.env.EMAIL_USER}>`,
-      to: email,
+      to: toAddresses, // Will work with a single email or comma-separated list
       subject,
-      html: body, // Using HTML instead of text for better formatting
-      text: body.replace(/<[^>]*>?/gm, ''), // Fallback plain text
+      html: body,
+      text: body.replace(/<[^>]*>?/gm, ''),
     });
 
-    console.log(`Email sent to ${email}`);
+    console.log(`Email sent to ${toAddresses}`);
     return { success: true };
   } catch (error) {
     console.error('Error sending email:', error);
-    throw error; // Re-throw for proper error handling upstream
+    throw error;
   }
 };
 
